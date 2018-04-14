@@ -1,0 +1,51 @@
+<html manifest="/auto.appcache">
+
+<body></body>
+<script>
+	const rand = upLimit => Math.floor(Math.random() * upLimit)
+	function pick(population, n) {
+		const ret = []
+		for (let i = 0; i < n; ++i)
+			ret.push(population[rand(population.length)])
+		return ret
+	}
+
+	function addImage({ multiverseid }) {
+		const img = new Image()
+		img.src = `http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=${multiverseid}&type=card`
+		document.body.appendChild(img)
+	}
+
+	function byRarity(cards, rarity) {
+		return cards.filter(card => card.rarity === rarity)
+	}
+
+	function addBooster(cards) {
+		const mythics = byRarity(cards, "Mythic Rare")
+		const rares = byRarity(cards, "Rare")
+		const rares_mythics = [...rares, ...mythics, ...rares]
+		const uncommons = byRarity(cards, "Uncommon")
+		const commons = byRarity(cards, "Common")
+		const booster = [
+			...pick(rares_mythics, 1),
+			...pick(uncommons, 3),
+			...pick(commons, 10),
+		]
+		booster.map(addImage)
+	}
+
+	async function fetchCards(setUrl) {
+		const response = await fetch(setUrl)
+		const setJson = await response.json()
+		const cards = setJson.cards.map(
+			({ multiverseid, rarity }) => ({ multiverseid, rarity })
+		)
+		for (let i = 0; i < 6; ++i)
+			addBooster(cards)
+	}
+
+	fetchCards("https://mtgjson.com/json/AKH.json")
+
+</script>
+
+</html>
